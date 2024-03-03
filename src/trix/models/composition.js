@@ -407,6 +407,14 @@ export default class Composition extends BasicObject {
   decreaseNestingLevel() {
     const block = this.getBlock()
     if (!block) return
+
+    // If next block has more nesting than the current, nest down the tree first.
+    let nextBlock = this.getNextBlock()
+    while (nextBlock && nextBlock.getNestingLevel() > block.getNestingLevel()) {
+      this.setDocument(this.document.replaceBlock(nextBlock, nextBlock.decreaseNestingLevel()))
+      nextBlock = this.getNextBlock()
+    }
+
     return this.setDocument(this.document.replaceBlock(block, block.decreaseNestingLevel()))
   }
 
@@ -749,6 +757,14 @@ export default class Composition extends BasicObject {
       if (index > 0) {
         return this.document.getBlockAtIndex(index - 1)
       }
+    }
+  }
+
+  getNextBlock() {
+    const locationRange = this.getLocationRange()
+    if (locationRange) {
+      const { index } = locationRange[0]
+      return this.document.getBlockAtIndex(index + 1)
     }
   }
 
